@@ -1,10 +1,10 @@
-** Education project K8s on GKE **
+**Education project K8s on GKE**
 
 * Ready to use NEG
 * Uses Ingress resource integrated with gce
 * Uses persitent volume claims
 
-** Create cluster **
+**Create cluster**
 ```
 gcloud container clusters create demo-cluster-neg \
     --enable-ip-alias  \
@@ -13,7 +13,7 @@ gcloud container clusters create demo-cluster-neg \
     --zone=us-central1-a
 ```
 
-** Some notes **
+**Some notes**
 
 1. Healthcheck Kibana problem
 When Ingress creates balancer, automatically created healthcheck for backend verifies / , and expect 200 .
