@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  labels:
+    app: elasticsearch
+spec:
+  ports:
+  - port: 9200
+    name: http
+  clusterIP: None
+  selector:
+    app: elasticsearch
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: es
+spec:
+  selector:
+    matchLabels:
+      app: elasticsearch
+  serviceName: "elasticsearch"
+  replicas: 2
+  podManagementPolicy: Parallel
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      containers:
+      - name: elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.1.1
+        volumeMounts:
+        - name: es-storage
+          mountPath: /usr/share/elasticsearch/data
+        env:
+        - name: node.name
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: discovery.seed_hosts
+          value: es-0.elasticsearch,es-1.elasticsearch
+        - name: cluster.initial_master_nodes
+          value: es-0,es-1
+        - name: cluster.name
+          value: k8s-cluster
+        - name: bootstrap.memory_lock
+          value: "false"
+      initContainers:
+        - name: change-folder-permissions
+          image: busybox
+          command:
+          - sh
+          - -c
+          - "chown -R 1000:1000 /usr/share/elasticsearch/data"
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: es-storage
+              mountPath: /usr/share/elasticsearch/data
+        - name: increase-vm-max-map
+          image: busybox
+          command: ["sysctl", "-w", "vm.max_map_count=262144"]
+          securityContext:
+            privileged: true
+  volumeClaimTemplates:
+  - metadata:
+      name: es-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi

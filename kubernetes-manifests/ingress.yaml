@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: my-ingress
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /*
+        backend:
+          serviceName: kibana
+          servicePort: 5601
+      - path: /web
+        backend:
+          serviceName: web-server
+          servicePort: 8085
